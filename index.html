@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gratia | Clube de Cinema</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme-dark theme-orange">
 
@@ -174,7 +174,7 @@
         </div>
     </div>
 
-    <!-- SECTION 3: FILMES ASSISTIDOS (MÉDIA + HISTÓRICO COM OS 3 FILTROS) -->
+    <!-- SECTION 3: FILMES ASSISTIDOS -->
     <div id="filmes-assistidos" class="content-section active">
         <div class="section-header">
             <div>
@@ -185,14 +185,12 @@
             <button class="btn-add-movie" id="open-assistidos-modal-btn">+ Adicionar filme</button>
         </div>
 
-        <!-- Filtros de Ordenação Solicitados -->
         <div class="assistidos-filter-bar">
             <button class="assistidos-filter-btn active" data-sort="maior-media">⭐ Filmes mais bem avaliados</button>
             <button class="assistidos-filter-btn" data-sort="menor-media">📉 Filmes de menor média</button>
             <button class="assistidos-filter-btn" data-sort="historico">🗓️ Filme por histórico adicionado</button>
         </div>
 
-        <!-- Grid com os Cards no Tamanho Original da Média do Grupo -->
         <div class="movies-grid" id="assistidos-grid-container"></div>
     </div>
 
@@ -394,6 +392,6 @@
 
     <div class="watermark">⚡ Powered by Netlify</div>
 
-    <script src="script.js"></script>
+   <script src="js/script.js"></script>
 </body>
-</html> 
+</html>
