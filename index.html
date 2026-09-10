@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gratia | Clube de Cinema</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-dark theme-orange">
+
+    <!-- TELA DE SELEÇÃO DE PERFIL ESTILO HBO MAX -->
+    <div id="login-screen">
+        <div class="login-top-bar">
+            <div class="login-top-indicator"></div>
+        </div>
+
+        <div class="login-content">
+            <span class="login-subtitle">Que bom ver você de volta...</span>
+            <h2 class="login-title" id="login-screen-heading">Quem está assistindo?</h2>
+            <div class="login-members-row" id="login-members-grid"></div>
+            <button class="btn-toggle-edit" id="btn-toggle-edit-mode">Editar Perfis</button>
+        </div>
+
+        <div class="login-footer">
+            <div class="login-footer-logo">GRATIA</div>
+            <span class="login-footer-sub">Clube de Cinema</span>
+        </div>
+    </div>
+
+    <!-- Top Navbar -->
+    <header class="navbar">
+        <div class="nav-brand">
+            <div class="logo-icon">G</div>
+            <span>GRATIA</span>
+        </div>
+        <div class="nav-right-area">
+            <div class="customizer-box">
+                <div class="color-dot dot-orange" onclick="setThemeColor('orange')" title="Laranja"></div>
+                <div class="color-dot dot-pink" onclick="setThemeColor('pink')" title="Rosa"></div>
+                <div class="color-dot dot-blue" onclick="setThemeColor('blue')" title="Azul"></div>
+                <div class="color-dot dot-green" onclick="setThemeColor('green')" title="Verde"></div>
+                <div class="color-dot dot-yellow" onclick="setThemeColor('yellow')" title="Amarelo"></div>
+                <div class="color-dot dot-red" onclick="setThemeColor('red')" title="Vermelho"></div>
+                <button class="theme-toggle-btn" id="theme-mode-btn" onclick="toggleThemeMode()">☀️ / 🌙</button>
+            </div>
+            <div class="nav-profile" id="nav-profile-switch" title="Trocar de usuário">
+                <div class="profile-avatar" id="current-user-avatar">G</div>
+                <span id="current-user-name">Painel do grupo</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero-section" title="Clique para alterar a imagem de fundo do header">
+        <img id="hero-bg-img" class="hero-banner-bg" alt="Fundo Nosso Cinema">
+        <div class="hero-overlay" id="hero-overlay"></div>
+        <div class="hero-upload-placeholder" id="hero-placeholder">📷 Adicionar imagem de fundo</div>
+        <input type="file" id="hero-file-input" style="display:none;" accept="image/*">
+
+        <div class="hero-top-content">
+            <div class="hero-left-col">
+                <div class="hero-tag">CONTROLE CINEMATOGRÁFICO COLETIVO</div>
+                <h1>Nosso cinema,<br>em movimento.</h1>
+                <p>Curadoria, memória e competição amistosa em um só lugar. Cada sessão vira parte da história do Gratia.</p>
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="number" id="stats-movies-count">5</div>
+                        <div class="label">Filmes Vistos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="stats-directors-count">4</div>
+                        <div class="label">Autores diferentes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="stats-countries-count">0</div>
+                        <div class="label">Países Diferentes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Abas Completa e Restaurada -->
+        <div class="hero-nav-container">
+            <ul class="nav-menu-hero">
+                <li class="nav-item-hero" data-target="membros">
+                    <button>
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Membros & Cards
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="ranking">
+                    <button>
+                        <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                        Ranking
+                    </button>
+                </li>
+                <li class="nav-item-hero active" data-target="filmes-assistidos">
+                    <button>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        Filmes Assistidos
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="diretores">
+                    <button>
+                        <svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+                        Diretores
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="ano">
+                    <button>
+                        <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Ano
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="categorias">
+                    <button>
+                        <svg viewBox="0 0 24 24"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M5 6v.01"></path><path d="M5 12v.01"></path><path d="M5 18v.01"></path></svg>
+                        Categorias
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="rodadas">
+                    <button>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        Rodadas
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="pais">
+                    <button>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        Filmes por País
+                    </button>
+                </li>
+                <li class="nav-item-hero" data-target="estreias">
+                    <button>
+                        <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"></path></svg>
+                        Estreias
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- SECTION 1: Membros & Cards -->
+    <div id="membros" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">01 / 09</div>
+                <h2>Elenco do Gratia</h2>
+                <p>Os cards reordenam-se automaticamente conforme as vitórias de cada membro no ranking.</p>
+            </div>
+        </div>
+        <div class="grid-members" id="members-grid"></div>
+    </div>
+
+    <!-- SECTION 2: Ranking de Votações -->
+    <div id="ranking" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">02 / 09</div>
+                <h2>A disputa da temporada</h2>
+                <p>Ajuste as vitórias de cada membro. As posições e as fotos são atualizadas em tempo real.</p>
+            </div>
+        </div>
+        <div class="ranking-table">
+            <div class="ranking-row ranking-header">
+                <div>Posição</div>
+                <div>Cinéfilo</div>
+                <div>Vitórias</div>
+                <div>Desempenho</div>
+                <div>Ações (+ / -)</div>
+            </div>
+            <div id="ranking-rows-container"></div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: FILMES ASSISTIDOS -->
+    <div id="filmes-assistidos" class="content-section active">
+        <div class="section-header">
+            <div>
+                <div class="step">03 / 09</div>
+                <h2>Filmes Assistidos</h2>
+                <p>Todos os filmes avaliados e registrados no histórico do clube.</p>
+            </div>
+            <button class="btn-add-movie" id="open-assistidos-modal-btn">+ Adicionar filme</button>
+        </div>
+
+        <div class="assistidos-filter-bar">
+            <button class="assistidos-filter-btn active" data-sort="maior-media">⭐ Filmes mais bem avaliados</button>
+            <button class="assistidos-filter-btn" data-sort="menor-media">📉 Filmes de menor média</button>
+            <button class="assistidos-filter-btn" data-sort="historico">🗓️ Filme por histórico adicionado</button>
+        </div>
+
+        <div class="movies-grid" id="assistidos-grid-container"></div>
+    </div>
+
+    <!-- SECTION 4: Diretores -->
+    <div id="diretores" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">04 / 09</div>
+                <h2>Autores recorrentes</h2>
+                <p>Diretores ordenados pela presença na história do clube.</p>
+            </div>
+        </div>
+        <div class="directors-grid" id="directors-grid-container"></div>
+    </div>
+
+    <!-- SECTION 5: Ano -->
+    <div id="ano" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">05 / 09</div>
+                <h2>Uma viagem no tempo</h2>
+                <p>A coleção organizada por ano de lançamento.</p>
+            </div>
+        </div>
+        <div class="year-timeline" id="year-timeline-container"></div>
+    </div>
+
+    <!-- SECTION 6: Lista de Categorias -->
+    <div id="categorias" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">06 / 09</div>
+                <h2>O desafio das 34</h2>
+                <p>Marque o progresso e clique em qualquer categoria para ver os filmes indicados.</p>
+            </div>
+        </div>
+        <div class="categories-grid" id="categories-grid-container"></div>
+    </div>
+
+    <!-- SECTION 7: Rodadas -->
+    <div id="rodadas" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">07 / 09</div>
+                <h2 class="rodadas-header-title" style="font-size: 32px;">Controle de rodadas</h2>
+                <p class="rodadas-header-subtitle" style="margin-bottom: 0;">Sorteio e votação organizados para as próximas sessões.</p>
+            </div>
+        </div>
+        <div class="rodadas-numbers-bar" id="rodadas-numbers-container"></div>
+        <div class="rodada-active-display">
+            <div>
+                <div class="rodada-active-label">RODADA</div>
+                <div class="rodada-active-number" id="current-rodada-display">01</div>
+            </div>
+            <div style="margin-top: 18px;" class="rodada-active-desc">Marque quem participou do sorteio e da votação.</div>
+        </div>
+        <div class="rodadas-members-grid" id="rodadas-members-container"></div>
+    </div>
+
+    <!-- SECTION 8: Filmes por País -->
+    <div id="pais" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step" style="margin-bottom: 6px;">08 / 09</div>
+                <h2 class="pais-header-title" style="font-size: 32px;">Mapa cinematográfico</h2>
+                <p class="pais-header-subtitle" style="margin-bottom: 0;">Explore a filmografia do clube por país de origem.</p>
+            </div>
+        </div>
+        <div class="country-filters-bar" id="country-filters-container"></div>
+        <div class="country-movies-grid" id="country-movies-container"></div>
+    </div>
+
+    <!-- SECTION 9: Estreias -->
+    <div id="estreias" class="content-section">
+        <div class="section-header">
+            <div>
+                <div class="step">09 / 09</div>
+                <h2>Próximas Estreias</h2>
+                <p>Navegue pelos anos, selecione um mês específico ou escolha "Todos" para ver o ano completo.</p>
+            </div>
+            <button class="btn-add-movie" id="open-estreia-modal-btn">+ Adicionar estreia</button>
+        </div>
+        <div class="year-selector-bar" id="estreias-years-container"></div>
+        <div class="months-bar" id="estreias-months-container"></div>
+        <div class="movies-grid" id="estreias-grid-container"></div>
+    </div>
+
+    <!-- MODAL DE ADICIONAR / EDITAR FILME ASSISTIDO -->
+    <div class="modal-overlay" id="assistidos-modal">
+        <div class="modal-content">
+            <div class="modal-header-row">
+                <h3 id="assistidos-modal-title">Adicionar novo filme assistido</h3>
+                <button class="modal-close-btn" id="close-assistidos-modal">&times;</button>
+            </div>
+            <div class="form-group"><label>Título</label><input type="text" id="add-title" placeholder="Nome do filme"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group"><label>Diretor</label><input type="text" id="add-director" placeholder="Diretor"></div>
+                <div class="form-group"><label>Ano</label><input type="text" id="add-year" placeholder="2026"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group"><label>País</label><input type="text" id="add-country" placeholder="Brasil"></div>
+                <div class="form-group">
+                    <label>Indicado por</label>
+                    <select id="add-indicated"></select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group"><label>Rodada</label><input type="number" id="add-rodada" placeholder="1" value="1"></div>
+                <div class="form-group">
+                    <label>Tipo de Indicação</label>
+                    <select id="add-indication-type">
+                        <option value="sorteio">Sorteio</option>
+                        <option value="votacao">Votação</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group"><label>Data da Indicação</label><input type="text" id="add-ind-date" placeholder="10 ago 2026"></div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="add-category"></select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group"><label>Visto por último</label><input type="text" id="add-watched" placeholder="22 ago 2026"></div>
+                <div class="form-group"><label>Nota Inicial (0 a 5)</label><input type="number" step="0.1" id="add-rating" placeholder="4.5"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancel-assistidos-modal">Cancelar</button>
+                <button class="btn-add-movie" id="save-assistidos-btn">+ Salvar Filme</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE VOTAÇÕES DETALHADAS -->
+    <div class="modal-overlay" id="votes-modal">
+        <div class="modal-content">
+            <div class="modal-header-row">
+                <h3 id="modal-movie-title">Votações do Filme</h3>
+                <button class="modal-close-btn" id="close-votes-modal">&times;</button>
+            </div>
+            <div class="movie-votes-list" id="modal-votes-list"></div>
+            <div class="modal-footer-avg" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px; font-weight: 600;">
+                <span>Média Geral do Filme:</span>
+                <span id="modal-movie-avg" style="color: var(--primary-orange); font-size: 20px; font-family: 'Playfair Display', serif;">4.8</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CATEGORIAS -->
+    <div class="modal-overlay" id="category-movies-modal">
+        <div class="modal-content">
+            <div class="modal-header-row">
+                <h3 id="cat-modal-title">Filmes da Categoria</h3>
+                <button class="modal-close-btn" id="close-cat-modal">&times;</button>
+            </div>
+            <div class="category-movies-list" id="cat-modal-movies-list"></div>
+        </div>
+    </div>
+
+    <!-- MODAL ESTREIAS -->
+    <div class="modal-overlay" id="estreia-modal">
+        <div class="modal-content">
+            <div class="modal-header-row">
+                <h3 id="estreia-modal-title" style="font-family: 'Playfair Display', serif;">Adicionar Nova Estreia</h3>
+                <button class="modal-close-btn" id="close-estreia-modal">&times;</button>
+            </div>
+            <div class="form-group"><label>Título do Filme</label><input type="text" id="estreia-title" placeholder="Ex: Nosferatu"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group"><label>Diretor</label><input type="text" id="estreia-director" placeholder="Ex: Robert Eggers"></div>
+                <div class="form-group"><label>Ano</label><input type="number" id="estreia-year-input" placeholder="2026" value="2026"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label>Mês</label>
+                    <select id="estreia-month-input">
+                        <option value="Janeiro">Janeiro</option>
+                        <option value="Fevereiro">Fevereiro</option>
+                        <option value="Março">Março</option>
+                        <option value="Abril">Abril</option>
+                        <option value="Maio">Maio</option>
+                        <option value="Junho">Junho</option>
+                        <option value="Julho">Julho</option>
+                        <option value="Agosto">Agosto</option>
+                        <option value="Setembro">Setembro</option>
+                        <option value="Outubro">Outubro</option>
+                        <option value="Novembro">Novembro</option>
+                        <option value="Dezembro">Dezembro</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Gênero</label><input type="text" id="estreia-genre" placeholder="Terror / Suspense"></div>
+            </div>
+            <div class="modal-actions" style="margin-top: 10px;">
+                <button class="btn-secondary" id="cancel-estreia-modal">Cancelar</button>
+                <button class="btn-add-movie" id="save-estreia-btn">+ Salvar Estreia</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">⚡ Powered by Netlify</div>
+
+   <script src="js/script.js"></script>
+</body>
+</html>
