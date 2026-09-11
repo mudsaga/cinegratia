@@ -10,7 +10,7 @@
 <body class="theme-dark theme-orange">
 
     <!-- TELA DE SELEÇÃO DE PERFIL ESTILO HBO MAX -->
-    <div id="login-screen">
+    <div id="login-screen" style="display: none;">
         <div class="login-top-bar">
             <div class="login-top-indicator"></div>
         </div>
@@ -44,10 +44,18 @@
                 <div class="color-dot dot-red" onclick="setThemeColor('red')" title="Vermelho"></div>
                 <button class="theme-toggle-btn" id="theme-mode-btn" onclick="toggleThemeMode()">☀️ / 🌙</button>
             </div>
-            <div class="nav-profile" id="nav-profile-switch" title="Trocar de usuário">
-                <div class="profile-avatar" id="current-user-avatar">G</div>
-                <span id="current-user-name">Painel do grupo</span>
-            </div>
+            
+            <!-- Substitua o botão antigo do topo por este: -->
+<!-- Botão de Entrar -->
+    <button id="btn-open-login" style="background: var(--primary-orange); color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+        Entrar
+    </button>
+
+    <!-- Perfil Logado no Topo -->
+    <div class="nav-profile" id="nav-profile-switch" title="Trocar de usuário" style="display: none;">
+        <div class="profile-avatar" id="current-user-avatar">G</div>
+        <span id="current-user-name">Painel do grupo</span>
+    </div>
         </div>
     </header>
 
@@ -80,7 +88,6 @@
             </div>
         </div>
 
-        <!-- Barra de Abas Completa e Restaurada -->
         <div class="hero-nav-container">
             <ul class="nav-menu-hero">
                 <li class="nav-item-hero" data-target="membros">
@@ -141,7 +148,7 @@
         </div>
     </section>
 
-    <!-- SECTION 1: Membros & Cards -->
+    <!-- Demais seções continuam iguais... -->
     <div id="membros" class="content-section">
         <div class="section-header">
             <div>
@@ -153,7 +160,6 @@
         <div class="grid-members" id="members-grid"></div>
     </div>
 
-    <!-- SECTION 2: Ranking de Votações -->
     <div id="ranking" class="content-section">
         <div class="section-header">
             <div>
@@ -174,7 +180,6 @@
         </div>
     </div>
 
-    <!-- SECTION 3: FILMES ASSISTIDOS -->
     <div id="filmes-assistidos" class="content-section active">
         <div class="section-header">
             <div>
@@ -194,7 +199,6 @@
         <div class="movies-grid" id="assistidos-grid-container"></div>
     </div>
 
-    <!-- SECTION 4: Diretores -->
     <div id="diretores" class="content-section">
         <div class="section-header">
             <div>
@@ -206,7 +210,6 @@
         <div class="directors-grid" id="directors-grid-container"></div>
     </div>
 
-    <!-- SECTION 5: Ano -->
     <div id="ano" class="content-section">
         <div class="section-header">
             <div>
@@ -218,7 +221,6 @@
         <div class="year-timeline" id="year-timeline-container"></div>
     </div>
 
-    <!-- SECTION 6: Lista de Categorias -->
     <div id="categorias" class="content-section">
         <div class="section-header">
             <div>
@@ -230,7 +232,6 @@
         <div class="categories-grid" id="categories-grid-container"></div>
     </div>
 
-    <!-- SECTION 7: Rodadas -->
     <div id="rodadas" class="content-section">
         <div class="section-header">
             <div>
@@ -250,7 +251,6 @@
         <div class="rodadas-members-grid" id="rodadas-members-container"></div>
     </div>
 
-    <!-- SECTION 8: Filmes por País -->
     <div id="pais" class="content-section">
         <div class="section-header">
             <div>
@@ -263,7 +263,6 @@
         <div class="country-movies-grid" id="country-movies-container"></div>
     </div>
 
-    <!-- SECTION 9: Estreias -->
     <div id="estreias" class="content-section">
         <div class="section-header">
             <div>
@@ -278,7 +277,7 @@
         <div class="movies-grid" id="estreias-grid-container"></div>
     </div>
 
-    <!-- MODAL DE ADICIONAR / EDITAR FILME ASSISTIDO -->
+    <!-- Modais -->
     <div class="modal-overlay" id="assistidos-modal">
         <div class="modal-content">
             <div class="modal-header-row">
@@ -325,7 +324,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE VOTAÇÕES DETALHADAS -->
     <div class="modal-overlay" id="votes-modal">
         <div class="modal-content">
             <div class="modal-header-row">
@@ -340,7 +338,6 @@
         </div>
     </div>
 
-    <!-- MODAL CATEGORIAS -->
     <div class="modal-overlay" id="category-movies-modal">
         <div class="modal-content">
             <div class="modal-header-row">
@@ -351,7 +348,6 @@
         </div>
     </div>
 
-    <!-- MODAL ESTREIAS -->
     <div class="modal-overlay" id="estreia-modal">
         <div class="modal-content">
             <div class="modal-header-row">
@@ -392,23 +388,42 @@
 
     <div class="watermark">⚡ Powered by Netlify</div>
 
-   <script src="js/script.js"></script>
-<!-- Script de Proteção de Acesso (Supabase) -->
+    <script src="js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const SUPABASE_URL = 'https://lszrmhtyzilemyybhxdl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_aRoMe2EJHGVvmcPrTgfXcQ_fDNyiCnW';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function checkAuth() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const acabouDeLogar = urlParams.get('login') === 'success';
+
+        async function checkInitialAccess() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                // Se não estiver logado, redireciona para a tela de login
-                window.location.href = 'login/login.html';
+
+            const loginScreen = document.getElementById('login-screen');
+            const btnLoginTop = document.getElementById('btn-open-login');
+
+            if (session || acabouDeLogar) {
+                if (loginScreen) {
+                    loginScreen.style.display = 'flex';
+                    renderLoginScreen();
+                }
+                if (btnLoginTop) btnLoginTop.style.display = 'none';
+            } else {
+                if (loginScreen) loginScreen.style.display = 'none';
+                if (btnLoginTop) btnLoginTop.style.display = 'block';
             }
         }
-        checkAuth();
+
+        const btnOpen = document.getElementById('btn-open-login');
+        if (btnOpen) {
+            btnOpen.addEventListener('click', () => {
+                window.location.href = 'login/login.html';
+            });
+        }
+
+        checkInitialAccess();
     </script>
-</head>
 </body>
 </html>

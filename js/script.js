@@ -128,13 +128,36 @@ function renderLoginScreen() {
             if (isEditingProfiles) {
                 fileInput.click();
             } else {
-                loggedInUser = m.name;
-                document.getElementById('login-screen').style.display = 'none';
-                updateNavbarProfile();
-                renderApp();
+            loggedInUser = m.name;
+            
+            // 1. Esconde a tela de perfis
+            document.getElementById('login-screen').style.display = 'none';
+            
+            // 2. Oculta o botão de "Entrar" do topo
+            const btnLoginTop = document.getElementById('btn-open-login');
+            if (btnLoginTop) btnLoginTop.style.display = 'none';
+            
+            // 3. Exibe o bloco de perfil logado no topo e injeta o nome e o avatar
+            const navProfileSwitch = document.getElementById('nav-profile-switch');
+            if (navProfileSwitch) {
+                navProfileSwitch.style.display = 'flex';
+                
+                const nameEl = document.getElementById('current-user-name');
+                const avatarEl = document.getElementById('current-user-avatar');
+                
+                if (nameEl) nameEl.innerText = m.name;
+                if (avatarEl) {
+                    if (m.avatar) {
+                        avatarEl.innerHTML = `<img src="${m.avatar}">`;
+                    } else {
+                        avatarEl.innerHTML = m.name.substring(0, 2).toUpperCase();
+                    }
+                }
             }
-        });
 
+            renderApp();
+        }
+        });
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -1268,4 +1291,18 @@ function toggleThemeMode() {
     }
 }
 
-renderLoginScreen();
+// Oculta a tela de login inicial para abrir direto no modo de visualização livre
+const initialLoginScreen = document.getElementById('login-screen');
+if (initialLoginScreen) {
+    initialLoginScreen.style.display = 'none';
+}
+
+// Inicializa a aplicação diretamente exibindo o catálogo
+renderApp();
+
+// Estado inicial: garante que o site abra no modo visualizador
+// Estado inicial: garante que o site abra no modo visualizador
+navProfileSwitch = document.getElementById('nav-profile-switch');
+btnLoginTop = document.getElementById('btn-open-login');
+if (navProfileSwitch) navProfileSwitch.style.display = 'none';
+if (btnLoginTop) btnLoginTop.style.display = 'block';
