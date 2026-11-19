@@ -2,6 +2,7 @@ const SUPABASE_URL = 'https://lszrmhtyzilemyybhxdl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_aRoMe2EJHGVvmcPrTgfXcQ_fDNyiCnW';
 const BUCKET_MIDIAS = 'MIDIAS-GRATIA';
 const TABELA_FILMES = 'filmes_midia';
+const TABELA_MEMBROS = 'membros_gratia';
 
 const supabaseClient = (window.supabase && typeof window.supabase.createClient === 'function')
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -110,7 +111,7 @@ let selectedEstreiaMonth = "Todos";
 const allMonths = ["Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 let editingEstreiaIndex = null;
 
-// --- INTEGRAÇÃO SUPABASE (STORAGE + TABELA) ---
+// --- INTEGRAÇÃO SUPABASE (STORAGE + TABELAS) ---
 async function uploadArquivoMidia(file, pasta = 'posters') {
     if (!file || !supabaseClient) return '';
     const extensao = (file.name.split('.').pop() || 'bin').toLowerCase();
@@ -133,6 +134,53 @@ async function uploadArquivoMidia(file, pasta = 'posters') {
         .getPublicUrl(nomeArquivo);
 
     return data && data.publicUrl ? data.publicUrl : '';
+}
+
+async function salvarMembroNoBanco(member) {
+    if (!supabaseClient || !member) return;
+
+    const payload = {
+        id: member.id,
+        nome: member.name,
+        vitorias: Number(member.victories) || 0,
+        avatar_url: member.avatar || '',
+        letterboxd: member.letterboxd || ''
+    };
+
+    const { error } = await supabaseClient
+        .from(TABELA_MEMBROS)
+        .upsert([payload], { onConflict: 'id' });
+
+    if (error) {
+        console.error('Erro ao salvar membro no Supabase:', error);
+    }
+}
+
+async function carregarMembrosDoBanco() {
+    if (!supabaseClient) return;
+
+    const { data, error } = await supabaseClient
+        .from(TABELA_MEMBROS)
+        .select('*');
+
+    if (error) {
+        console.error('Erro ao carregar membros do Supabase:', error);
+        return;
+    }
+
+    if (Array.isArray(data) && data.length > 0) {
+        data.forEach(row => {
+            const member = membersData.find(m => m.id === row.id || m.name.toLowerCase() === (row.nome || '').toLowerCase());
+            if (member) {
+                if (row.avatar_url !== undefined && row.avatar_url !== null) member.avatar = row.avatar_url;
+                if (row.vitorias !== undefined && row.vitorias !== null) member.victories = Number(row.vitorias);
+                if (row.letterboxd !== undefined && row.letterboxd !== null) member.letterboxd = row.letterboxd;
+            }
+        });
+        renderApp();
+        renderLoginScreen();
+        updateNavbarProfile();
+    }
 }
 
 async function salvarFilmeNoBanco(movie, isUpdate = false) {
@@ -215,7 +263,6 @@ async function carregarFilmesDoBanco() {
             votes: (row.votos && typeof row.votos === 'object') ? row.votos : {}
         }));
 
-        // Mantém os filmes iniciais que ainda não foram salvos no banco, evitando que sumam
         const titulosNoBanco = new Set(dbMovies.map(m => m.title.trim().toLowerCase()));
         const filmesIniciaisRestantes = defaultMoviesList.filter(
             def => !titulosNoBanco.has(def.title.trim().toLowerCase())
@@ -303,12 +350,12 @@ function renderLoginScreen() {
         });
 
         fileInput.addEventListener('change', async (e) => {
-            if (!verificarPermissaoEdicao()) return;
             const file = e.target.files[0];
             if (file) {
                 const urlPublica = await uploadArquivoMidia(file, 'perfis');
                 if (urlPublica) {
                     m.avatar = urlPublica;
+                    await salvarMembroNoBanco(m);
                     renderLoginScreen();
                     renderApp();
                     updateNavbarProfile();
@@ -804,10 +851,43 @@ function renderMembersSection(sortedMembers) {
                     const urlPublica = await uploadArquivoMidia(file, 'perfis');
                     if (urlPublica) {
                         member.avatar = urlPublica;
+                        await salvarMembroNoBanco(member);
                         renderApp();
                         updateNavbarProfile();
                         renderLoginScreen();
                     }
+                }
+            });
+        }
+
+        const editLbBtn = card.querySelector('.edit-lb-btn');
+        if (editLbBtn) {
+            editLbBtn.addEventListener('click', () => {
+                if (!verificarPermissaoEdicao()) return;
+                const novoLink = prompt(`Link do Letterboxd para ${member.name}:`, member.letterboxd || '');
+                if (novoLink !== null) {
+                    member.letterboxd = novoLink.trim();
+                    salvarMembroNoBanco(member);
+                    renderApp();
+                }
+            });
+        }
+
+        const lbInput = card.querySelector('.letterboxd-input');
+        if (lbInput) {
+            lbInput.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    if (!verificarPermissaoEdicao()) return;
+                    member.letterboxd = lbInput.value.trim();
+                    await salvarMembroNoBanco(member);
+                    renderApp();
+                }
+            });
+            lbInput.addEventListener('blur', async () => {
+                if (lbInput.value.trim() && loggedInUser) {
+                    member.letterboxd = lbInput.value.trim();
+                    await salvarMembroNoBanco(member);
+                    renderApp();
                 }
             });
         }
@@ -847,15 +927,17 @@ function renderRankingSection(sortedMembers, maxVictories) {
         `;
         container.appendChild(row);
 
-        row.querySelector('.btn-plus').addEventListener('click', () => {
+        row.querySelector('.btn-plus').addEventListener('click', async () => {
             if (!verificarPermissaoEdicao()) return;
             member.victories++;
+            await salvarMembroNoBanco(member);
             renderApp();
         });
-        row.querySelector('.btn-minus').addEventListener('click', () => {
+        row.querySelector('.btn-minus').addEventListener('click', async () => {
             if (!verificarPermissaoEdicao()) return;
             if (member.victories > 0) {
                 member.victories--;
+                await salvarMembroNoBanco(member);
                 renderApp();
             }
         });
@@ -1615,6 +1697,7 @@ function toggleThemeMode() {
 
 renderApp();
 carregarFilmesDoBanco();
+carregarMembrosDoBanco();
 
 const estaLogadoNoSistema = localStorage.getItem('gratia_logado') === 'true';
 
