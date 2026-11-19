@@ -9,14 +9,14 @@ const supabaseClient = (window.supabase && typeof window.supabase.createClient =
     : null;
 
 const membersData = [
-    { id: 1, name: "Rayane", class: "c-1", victories: 9, desc: "Cinema latino e romances dramáticos.", avatar: "", letterboxd: "https://letterboxd.com/nayaxs/" },
-    { id: 2, name: "Malena", class: "c-2", victories: 8, desc: "Diretores autorais e narrativas impactantes.", avatar: "", letterboxd: "" },
-    { id: 3, name: "Rebeca", class: "c-3", victories: 8, desc: "Terror, melodrama e suspense visual profundo.", avatar: "", letterboxd: "" },
-    { id: 4, name: "Kamila", class: "c-4", victories: 8, desc: "Clássicos cult, atuações marcantes e boa trilha.", avatar: "", letterboxd: "" },
-    { id: 5, name: "Derp", class: "c-5", victories: 8, desc: "Ficção científica, noir e cinema de gênero.", avatar: "", letterboxd: "" },
-    { id: 6, name: "Matheus", class: "c-6", victories: 7, desc: "Dramas intensos e fotografia contemplativa.", avatar: "", letterboxd: "" },
-    { id: 7, name: "Mylena", class: "c-7", victories: 7, desc: "Animações, comédias ácidas e indies modernos.", avatar: "", letterboxd: "" },
-    { id: 8, name: "Mudsaga", class: "c-8", victories: 6, desc: "Curadoria livre e descobertas do festival.", avatar: "", letterboxd: "" }
+    { id: 1, name: "Rayane", class: "c-1", victories: 9, desc: "", cover: "", avatar: "", letterboxd: "https://letterboxd.com/nayaxs/" },
+    { id: 2, name: "Malena", class: "c-2", victories: 8, desc: "", cover: "", avatar: "", letterboxd: "" },
+    { id: 3, name: "Rebeca", class: "c-3", victories: 8, desc: "", cover: "", avatar: "", letterboxd: "" },
+    { id: 4, name: "Kamila", class: "c-4", victories: 8, desc: "", cover: "", avatar: "", letterboxd: "" },
+    { id: 5, name: "Derp", class: "c-5", victories: 8, desc: "", cover: "", avatar: "", letterboxd: "" },
+    { id: 6, name: "Matheus", class: "c-6", victories: 7, desc: "", cover: "", avatar: "", letterboxd: "" },
+    { id: 7, name: "Mylena", class: "c-7", victories: 7, desc: "", cover: "", avatar: "", letterboxd: "" },
+    { id: 8, name: "Mudsaga", class: "c-8", victories: 6, desc: "", cover: "", avatar: "", letterboxd: "" }
 ];
 
 let loggedInUser = null;
@@ -144,6 +144,8 @@ async function salvarMembroNoBanco(member) {
         nome: member.name,
         vitorias: Number(member.victories) || 0,
         avatar_url: member.avatar || '',
+        capa_url: member.cover || '',
+        descricao: member.desc || '',
         letterboxd: member.letterboxd || ''
     };
 
@@ -173,6 +175,8 @@ async function carregarMembrosDoBanco() {
             const member = membersData.find(m => m.id === row.id || m.name.toLowerCase() === (row.nome || '').toLowerCase());
             if (member) {
                 if (row.avatar_url !== undefined && row.avatar_url !== null) member.avatar = row.avatar_url;
+                if (row.capa_url !== undefined && row.capa_url !== null) member.cover = row.capa_url;
+                if (row.descricao !== undefined && row.descricao !== null) member.desc = row.descricao;
                 if (row.vitorias !== undefined && row.vitorias !== null) member.victories = Number(row.vitorias);
                 if (row.letterboxd !== undefined && row.letterboxd !== null) member.letterboxd = row.letterboxd;
             }
@@ -383,7 +387,7 @@ if (btnToggleEditMode) {
             btnToggleEditMode.innerText = "Editar Perfis";
             btnToggleEditMode.classList.remove('active');
             loginScreenEl.classList.remove('editing-mode');
-            loginHeading.innerText = "Quem está assistindo?";
+            loginHeading.innerText = "Quem está logando?";
         }
         renderLoginScreen();
     });
@@ -418,7 +422,7 @@ if (navProfileSwitch) {
             btnToggleEditMode.classList.remove('active');
         }
         if (loginScreenEl) loginScreenEl.classList.remove('editing-mode');
-        if (loginHeading) loginHeading.innerText = "Quem está assistindo?";
+        if (loginHeading) loginHeading.innerText = "Quem está logando?";
         document.getElementById('login-screen').style.display = 'flex';
         renderLoginScreen();
     });
@@ -800,9 +804,14 @@ function renderMembersSection(sortedMembers) {
             letterboxdContent = `<input type="text" class="letterboxd-input" placeholder="Cole o link do Letterboxd..." value="${member.letterboxd}">`;
         }
 
+        const coverStyle = member.cover
+            ? `background-image: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.45)), url('${member.cover}'); background-size: cover; background-position: center;`
+            : '';
+
         card.innerHTML = `
-            <div class="member-header ${member.class}">
-                <div class="avatar-upload-container" title="Clique para adicionar foto">
+            <div class="member-header ${member.class}" style="${coverStyle} position: relative; cursor: pointer;" title="Clique na capa para adicionar uma foto de fundo">
+                <input type="file" class="cover-input" accept="image/*" style="display: none;">
+                <div class="avatar-upload-container" title="Clique para adicionar foto" style="position: relative; z-index: 2;">
                     <span>${member.avatar ? '' : member.name}</span>
                     <img alt="Avatar" src="${member.avatar}" style="display: ${member.avatar ? 'block' : 'none'};">
                     <input type="file" class="avatar-input" accept="image/*">
@@ -813,7 +822,7 @@ function renderMembersSection(sortedMembers) {
                     <span class="member-name">${member.name}</span>
                     <span class="member-stats">${member.victories} vitórias · #${index + 1}</span>
                 </div>
-                <div class="member-desc">${member.desc}</div>
+                <div class="member-desc member-desc-editable" title="Clique para escrever ou editar sua frase" style="cursor: pointer; min-height: 20px; color: var(--text-muted);">${member.desc || 'Escrever frase do perfil...'}</div>
                 <div class="letterboxd-box" id="lb-box-${member.id}">
                     ${letterboxdContent}
                 </div>
@@ -837,10 +846,46 @@ function renderMembersSection(sortedMembers) {
         `;
         gridContainer.appendChild(card);
 
+        const memberHeader = card.querySelector('.member-header');
+        const coverInput = card.querySelector('.cover-input');
+        if (memberHeader && coverInput) {
+            memberHeader.addEventListener('click', (e) => {
+                if (e.target.closest('.avatar-upload-container')) return;
+                if (!verificarPermissaoEdicao()) return;
+                coverInput.click();
+            });
+            coverInput.addEventListener('change', async (e) => {
+                if (!verificarPermissaoEdicao()) return;
+                const file = e.target.files[0];
+                if (file) {
+                    const urlPublica = await uploadArquivoMidia(file, 'capas');
+                    if (urlPublica) {
+                        member.cover = urlPublica;
+                        await salvarMembroNoBanco(member);
+                        renderApp();
+                    }
+                }
+            });
+        }
+
+        const descEl = card.querySelector('.member-desc-editable');
+        if (descEl) {
+            descEl.addEventListener('click', async () => {
+                if (!verificarPermissaoEdicao()) return;
+                const novaFrase = prompt(`Escreva a frase do perfil de ${member.name}:`, member.desc || '');
+                if (novaFrase !== null) {
+                    member.desc = novaFrase.trim();
+                    await salvarMembroNoBanco(member);
+                    renderApp();
+                }
+            });
+        }
+
         const avatarContainer = card.querySelector('.avatar-upload-container');
         const avatarInput = card.querySelector('.avatar-input');
         if (avatarContainer && avatarInput) {
-            avatarContainer.addEventListener('click', () => {
+            avatarContainer.addEventListener('click', (e) => {
+                e.stopPropagation();
                 if (!verificarPermissaoEdicao()) return;
                 avatarInput.click();
             });
