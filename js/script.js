@@ -460,9 +460,15 @@ function renderFilmesAssistidos() {
             }
         }
 
+        const removePosterBtnHtml = movie.poster
+            ? `<button class="movie-remove-poster-btn" title="Remover foto do pôster" style="position: absolute; top: 10px; right: 50px; z-index: 5; background: rgba(20, 20, 20, 0.85); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">🗑️</button>`
+            : '';
+
         const card = document.createElement('div');
         card.className = 'movie-card';
+        card.style.position = 'relative';
         card.innerHTML = `
+            ${removePosterBtnHtml}
             <button class="movie-edit-btn" title="Editar informações do filme">✏️</button>
             <div class="movie-poster-container" title="Clique para adicionar pôster vertical">
                 <span>+ Adicionar Pôster Vertical</span>
@@ -484,6 +490,17 @@ function renderFilmesAssistidos() {
                 </div>
             </div>
         `;
+
+        const removePosterBtn = card.querySelector('.movie-remove-poster-btn');
+        if (removePosterBtn) {
+            removePosterBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!verificarPermissaoEdicao()) return;
+                movie.poster = '';
+                await salvarFilmeNoBanco(movie, Boolean(movie.dbId));
+                renderApp();
+            });
+        }
 
         card.querySelector('.movie-edit-btn').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -760,6 +777,92 @@ if (saveAssistidosBtn) {
     });
 }
 
+function renderLetterboxdBox(lbBox, member) {
+    if (!lbBox || !member) return;
+
+    if (member.letterboxd && member.letterboxd.trim() !== '') {
+        let hrefVal = member.letterboxd.trim();
+        if (!hrefVal.startsWith('http://') && !hrefVal.startsWith('https://')) hrefVal = 'https://' + hrefVal;
+
+        lbBox.innerHTML = `
+            <div class="letterboxd-link-container">
+                <a href="${hrefVal}" target="_blank" rel="noopener noreferrer" class="letterboxd-link">🔗 ${member.letterboxd}</a>
+                <button type="button" class="lb-icon-btn edit-lb-btn" title="Editar link">✏️</button>
+            </div>
+        `;
+
+        const editLbBtn = lbBox.querySelector('.edit-lb-btn');
+        if (editLbBtn) {
+            editLbBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!verificarPermissaoEdicao()) return;
+                if (lbBox.querySelector('input')) return;
+
+                const inputEdit = document.createElement('input');
+                inputEdit.type = 'text';
+                inputEdit.className = 'letterboxd-input lb-inline-edit';
+                inputEdit.value = member.letterboxd || '';
+                inputEdit.placeholder = 'https://letterboxd.com/usuario/';
+                inputEdit.style.width = '100%';
+                inputEdit.style.boxSizing = 'border-box';
+
+                lbBox.innerHTML = '';
+                lbBox.appendChild(inputEdit);
+                inputEdit.focus();
+
+                let salvou = false;
+                const concluirEdicao = async () => {
+                    if (salvou) return;
+                    salvou = true;
+                    member.letterboxd = inputEdit.value.trim();
+                    await salvarMembroNoBanco(member);
+                    renderLetterboxdBox(lbBox, member);
+                };
+
+                inputEdit.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') {
+                        ev.preventDefault();
+                        inputEdit.blur();
+                    } else if (ev.key === 'Escape') {
+                        salvou = true;
+                        renderLetterboxdBox(lbBox, member);
+                    }
+                });
+
+                inputEdit.addEventListener('blur', concluirEdicao);
+            });
+        }
+    } else {
+        lbBox.innerHTML = `<input type="text" class="letterboxd-input" placeholder="Cole o link do Letterboxd..." value="">`;
+        const lbInput = lbBox.querySelector('.letterboxd-input');
+        if (lbInput) {
+            let salvou = false;
+            const concluirNovoLink = async () => {
+                if (salvou) return;
+                const val = lbInput.value.trim();
+                if (!val) return;
+                if (!verificarPermissaoEdicao()) {
+                    lbInput.value = '';
+                    return;
+                }
+                salvou = true;
+                member.letterboxd = val;
+                await salvarMembroNoBanco(member);
+                renderLetterboxdBox(lbBox, member);
+            };
+
+            lbInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    lbInput.blur();
+                }
+            });
+            lbInput.addEventListener('blur', concluirNovoLink);
+        }
+    }
+}
+
 function renderMembersSection(sortedMembers) {
     const gridContainer = document.getElementById('members-grid');
     if (!gridContainer) return;
@@ -790,20 +893,6 @@ function renderMembersSection(sortedMembers) {
         const card = document.createElement('div');
         card.className = 'member-card';
 
-        let letterboxdContent = '';
-        if (member.letterboxd && member.letterboxd.trim() !== '') {
-            let hrefVal = member.letterboxd.trim();
-            if (!hrefVal.startsWith('http://') && !hrefVal.startsWith('https://')) hrefVal = 'https://' + hrefVal;
-            letterboxdContent = `
-                <div class="letterboxd-link-container">
-                    <a href="${hrefVal}" target="_blank" class="letterboxd-link">🔗 ${member.letterboxd}</a>
-                    <button class="lb-icon-btn edit-lb-btn" title="Editar link">✏️</button>
-                </div>
-            `;
-        } else {
-            letterboxdContent = `<input type="text" class="letterboxd-input" placeholder="Cole o link do Letterboxd..." value="${member.letterboxd}">`;
-        }
-
         const coverStyle = member.cover
             ? `background-image: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.45)), url('${member.cover}'); background-size: cover; background-position: center;`
             : '';
@@ -822,10 +911,10 @@ function renderMembersSection(sortedMembers) {
                     <span class="member-name">${member.name}</span>
                     <span class="member-stats">${member.victories} vitórias · #${index + 1}</span>
                 </div>
-                <div class="member-desc member-desc-editable" title="Clique para escrever ou editar sua frase" style="cursor: pointer; min-height: 20px; color: var(--text-muted);">${member.desc || 'Escrever frase do perfil...'}</div>
-                <div class="letterboxd-box" id="lb-box-${member.id}">
-                    ${letterboxdContent}
+                <div class="member-desc-slot" data-member-id="${member.id}">
+                    <div class="member-desc member-desc-editable" title="Clique para escrever na bio" style="cursor: pointer; min-height: 22px; padding: 4px 6px; margin: 2px -6px; border-radius: 6px; color: ${member.desc ? 'var(--text-main)' : 'var(--text-muted)'}; transition: background 0.15s ease;">${member.desc || 'Escrever frase do perfil...'}</div>
                 </div>
+                <div class="letterboxd-box" id="lb-box-${member.id}"></div>
                 <div class="top-movies-list">
                     <div class="top-movie-item">
                         <div class="top-movie-left">
@@ -845,6 +934,9 @@ function renderMembersSection(sortedMembers) {
             </div>
         `;
         gridContainer.appendChild(card);
+
+        const lbBox = card.querySelector(`#lb-box-${member.id}`);
+        renderLetterboxdBox(lbBox, member);
 
         const memberHeader = card.querySelector('.member-header');
         const coverInput = card.querySelector('.cover-input');
@@ -868,16 +960,69 @@ function renderMembersSection(sortedMembers) {
             });
         }
 
+        const descSlot = card.querySelector('.member-desc-slot');
         const descEl = card.querySelector('.member-desc-editable');
-        if (descEl) {
-            descEl.addEventListener('click', async () => {
-                if (!verificarPermissaoEdicao()) return;
-                const novaFrase = prompt(`Escreva a frase do perfil de ${member.name}:`, member.desc || '');
-                if (novaFrase !== null) {
-                    member.desc = novaFrase.trim();
-                    await salvarMembroNoBanco(member);
-                    renderApp();
+        if (descSlot && descEl) {
+            descEl.addEventListener('mouseenter', () => {
+                if (!descSlot.querySelector('input')) {
+                    descEl.style.background = 'rgba(255, 255, 255, 0.04)';
                 }
+            });
+            descEl.addEventListener('mouseleave', () => {
+                descEl.style.background = 'transparent';
+            });
+
+            descEl.addEventListener('click', () => {
+                if (!verificarPermissaoEdicao()) return;
+                if (descSlot.querySelector('input')) return;
+
+                const inputInline = document.createElement('input');
+                inputInline.type = 'text';
+                inputInline.className = 'letterboxd-input member-desc-inline-input';
+                inputInline.value = member.desc || '';
+                inputInline.placeholder = 'Escreva sua frase...';
+                inputInline.style.margin = '2px 0';
+                inputInline.style.padding = '5px 8px';
+                inputInline.style.fontSize = '13px';
+                inputInline.style.width = '100%';
+                inputInline.style.boxSizing = 'border-box';
+
+                descSlot.innerHTML = '';
+                descSlot.appendChild(inputInline);
+                inputInline.focus();
+
+                let salvou = false;
+                const finalizarEdicaoBio = async () => {
+                    if (salvou) return;
+                    salvou = true;
+                    const textoFinal = inputInline.value.trim();
+                    member.desc = textoFinal;
+                    await salvarMembroNoBanco(member);
+
+                    descSlot.innerHTML = `<div class="member-desc member-desc-editable" title="Clique para escrever na bio" style="cursor: pointer; min-height: 22px; padding: 4px 6px; margin: 2px -6px; border-radius: 6px; color: ${member.desc ? 'var(--text-main)' : 'var(--text-muted)'}; transition: background 0.15s ease;">${member.desc || 'Escrever frase do perfil...'}</div>`;
+                    const novoDiv = descSlot.querySelector('.member-desc-editable');
+                    if (novoDiv) {
+                        novoDiv.addEventListener('mouseenter', () => {
+                            if (!descSlot.querySelector('input')) novoDiv.style.background = 'rgba(255, 255, 255, 0.04)';
+                        });
+                        novoDiv.addEventListener('mouseleave', () => {
+                            novoDiv.style.background = 'transparent';
+                        });
+                        novoDiv.addEventListener('click', () => descEl.click());
+                    }
+                };
+
+                inputInline.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        inputInline.blur();
+                    } else if (e.key === 'Escape') {
+                        salvou = true;
+                        descSlot.innerHTML = `<div class="member-desc member-desc-editable" title="Clique para escrever na bio" style="cursor: pointer; min-height: 22px; padding: 4px 6px; margin: 2px -6px; border-radius: 6px; color: ${member.desc ? 'var(--text-main)' : 'var(--text-muted)'}; transition: background 0.15s ease;">${member.desc || 'Escrever frase do perfil...'}</div>`;
+                    }
+                });
+
+                inputInline.addEventListener('blur', finalizarEdicaoBio);
             });
         }
 
@@ -901,38 +1046,6 @@ function renderMembersSection(sortedMembers) {
                         updateNavbarProfile();
                         renderLoginScreen();
                     }
-                }
-            });
-        }
-
-        const editLbBtn = card.querySelector('.edit-lb-btn');
-        if (editLbBtn) {
-            editLbBtn.addEventListener('click', () => {
-                if (!verificarPermissaoEdicao()) return;
-                const novoLink = prompt(`Link do Letterboxd para ${member.name}:`, member.letterboxd || '');
-                if (novoLink !== null) {
-                    member.letterboxd = novoLink.trim();
-                    salvarMembroNoBanco(member);
-                    renderApp();
-                }
-            });
-        }
-
-        const lbInput = card.querySelector('.letterboxd-input');
-        if (lbInput) {
-            lbInput.addEventListener('keydown', async (e) => {
-                if (e.key === 'Enter') {
-                    if (!verificarPermissaoEdicao()) return;
-                    member.letterboxd = lbInput.value.trim();
-                    await salvarMembroNoBanco(member);
-                    renderApp();
-                }
-            });
-            lbInput.addEventListener('blur', async () => {
-                if (lbInput.value.trim() && loggedInUser) {
-                    member.letterboxd = lbInput.value.trim();
-                    await salvarMembroNoBanco(member);
-                    renderApp();
                 }
             });
         }
